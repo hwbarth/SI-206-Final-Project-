@@ -368,11 +368,79 @@ def getScramblingPct(cur, conn):
     conn.commit()
 
 
-def getStrokesGainedPutting():
+def getStrokesGainedPutting(cur, conn):
+    site = requests.get("https://www.pgatour.com/stats.html")
+
+    f = site.text
+
+    soup = BeautifulSoup(f, "html.parser")
+
+    
+    tableSeeAll = soup.find_all("a", class_ = "see-all")
+    
+    seeAllLink = tableSeeAll[8]["href"]
+
+    link = "https://www.pgatour.com/" + str(seeAllLink)
+    opened = requests.get(link)
+
+    soup2 = BeautifulSoup(opened.text, "html.parser")
+
+    greensPctTable = soup2.find("table", class_ = "table-styled")
+    #print(greeensPctTable)
 
 
-    pass
+    rows = greensPctTable.find_all("tr")   
 
+    
+
+    cur.execute('''
+    DROP TABLE IF EXISTS StrokesGainedPutting
+    ''')
+
+    cur.execute('''
+    CREATE TABLE StrokesGainedPutting(name TEXT, strokes REAL)
+    ''')
+
+
+    for row in rows:
+        
+        player_name = row.find("td", class_ = "player-name")
+
+        #playerName = player_name.find("a").string
+        '''
+        if (type(player_name) != None):
+        playerName = player_name.find("a")
+
+        print(playerName)
+        '''
+        name1 = ""
+        greensReg = 0
+   
+        #print(player_name)
+        if player_name != None:
+            name = player_name.find("a")
+            #print(name.string)
+            name1 = str(name.string)
+            print(name1)
+
+        greens_reg = row.find_all("td")
+
+        if greens_reg != None:
+            if len(greens_reg) > 5:
+                #print(driving_distance[4].string)
+                greensReg = float(greens_reg[4].string)
+        
+
+        
+        if greensReg != 0 and name1 != "":
+
+            cur.execute('''
+            INSERT INTO StrokesGainedPutting (name, strokes)
+            VALUES (?, ?)
+            ''', (name1, greensReg))
+            print(name1)
+            print(greensReg)
+    conn.commit()
 
 
 def main():
@@ -382,7 +450,8 @@ def main():
     #getGreensInRegPct(cur, conn)
     #getGolfLeaderBoard()
     #getStrokesGainedTeeToGreen(cur, conn)
-    getScramblingPct(cur, conn)
+    #getScramblingPct(cur, conn)
+    getStrokesGainedPutting(cur, conn)
 
 
     #getAvgDrivingDistance(cur, conn)
