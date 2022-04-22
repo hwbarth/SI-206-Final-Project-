@@ -95,13 +95,15 @@ def getGolfLeaderboard(cur, conn):
 
         real_name = name2[-1] + " " + name2[0]
 
-        print(real_name)
-        print(rank)
+        real_name1 = real_name.strip()
+
+        #print(real_name)
+        #print(rank)
 
         cur.execute('''
             INSERT INTO Leaderboard (name, rank)
             VALUES (?, ?)
-            ''', (real_name, rank))
+            ''', (real_name1, rank))
 
     conn.commit()
 
@@ -491,7 +493,7 @@ def drivingScatterPlot(cur, conn):
     drivingDict = {}
 
     cur.execute('''
-    SELECT Driving.distance, Leaderboard.rank
+    SELECT rank, distance
     FROM Leaderboard
     JOIN Driving
     ON Driving.name = Leaderboard.name
