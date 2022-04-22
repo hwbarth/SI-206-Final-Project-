@@ -36,7 +36,7 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-def getGolfLeaderBoard():
+def getGolfLeaderboard(cur, conn):
     '''
     resp = requests.get("https://golf-leaderboard-data.p.rapidapi.com/tour-rankings/2/2021")
 
@@ -44,17 +44,13 @@ def getGolfLeaderBoard():
 
     #f = json.loads(resp)
     print(f)
-    '''
+    
     url = "https://golf-leaderboard-data.p.rapidapi.com/tour-rankings/2/2021"
 
-    h = {
-	    "X-RapidAPI-Host": "golf-leaderboard-data.p.rapidapi.com",
-	    "X-RapidAPI-Key": "4489a2a0a6msh1f08319ed99a586p1aaacbjsn26fef02ad77b"
-    }
 
     p = {"season" : 2022, "tour_id" : 2}
 
-    response = requests.get(url, headers = h, params = p)
+    response = requests.get(url, params = p)
 
     #print(response.status_code)
 
@@ -64,8 +60,55 @@ def getGolfLeaderBoard():
 
     for p in f["results"]["rankings"]:
         print(p["player_name"])
-    
-  
+    '''
+
+
+    #url = "https://sportsdata.io/developers/api-documentation/golf#/endpoint/leaderboard"
+
+    my_headers = {"user" : "whdsports@gmail.com", "Ocp-Apim-Subscription-Key" : "{11e7472d48c5426395b330fc36795ae6}"}
+
+    #response = requests.get("https://api.sportsdata.io/golf/v2/json/PlayerSeasonStats/2022", headers = my_headers)
+    p = {"api_key" : "11e7472d48c5426395b330fc36795ae6"}
+
+    #Ocp-Apim-Subscription-Key: {key}
+
+    response = requests.get("https://feeds.datagolf.com/preds/get-dg-rankings?file_format=[ file_format ]&key=1e5bb95e483606573a01c8292f84")
+
+    #print(response.text)
+
+    text = json.loads(response.text)
+
+
+    cur.execute('''
+    DROP TABLE IF EXISTS Leaderboard
+    ''')
+
+    cur.execute('''
+    CREATE TABLE Leaderboard (name TEXT, rank REAL)
+    ''')
+
+    for r in text["rankings"]:
+        rank = int(r["owgr_rank"])
+        name1 = r["player_name"]
+
+        name2 = name1.split(",")
+
+        real_name = name2[-1] + " " + name2[0]
+
+        print(real_name)
+        print(rank)
+
+        cur.execute('''
+            INSERT INTO Leaderboard (name, rank)
+            VALUES (?, ?)
+            ''', (real_name, rank))
+
+    conn.commit()
+
+
+
+
+
 
 def getAvgDrivingDistance(cur, conn):
     site = requests.get("https://www.pgatour.com/stats.html")
@@ -369,6 +412,7 @@ def getScramblingPct(cur, conn):
 
 
 def getStrokesGainedPutting(cur, conn):
+
     site = requests.get("https://www.pgatour.com/stats.html")
 
     f = site.text
@@ -442,6 +486,24 @@ def getStrokesGainedPutting(cur, conn):
             print(greensReg)
     conn.commit()
 
+def drivingScatterPlot(cur, conn):
+
+    drivingDict = {}
+
+    cur.execute('''
+    SELECT Driving.distance, Leaderboard.rank
+    FROM Leaderboard
+    JOIN Driving
+    ON Driving.name = Leaderboard.name
+    ORDER BY Leaderboard.rank
+    ''')
+    
+
+    for row in cur:
+        print(row)
+
+
+
 
 def main():
     dbname = "GolfingBrothers.db"
@@ -451,10 +513,11 @@ def main():
     #getGolfLeaderBoard()
     #getStrokesGainedTeeToGreen(cur, conn)
     #getScramblingPct(cur, conn)
-    getStrokesGainedPutting(cur, conn)
+    #getStrokesGainedPutting(cur, conn)
 
 
-    #getAvgDrivingDistance(cur, conn)
+    #getGolfLeaderboard(cur, conn)
+    drivingScatterPlot(cur, conn)
 
 
 
