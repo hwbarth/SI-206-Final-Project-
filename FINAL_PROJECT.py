@@ -502,7 +502,122 @@ def drivingScatterPlot(cur, conn):
     
 
     for row in cur:
-        print(row)
+        #print(row)
+        drivingDict[row[0]] = row[-1]
+
+    print(drivingDict)
+
+    ranks = drivingDict.keys()
+    distances = drivingDict.values()
+
+    fig1 = plt.figure(1, edgecolor = "b", facecolor = "grey")
+
+    ax1 = fig1.add_subplot(111)
+
+    ax1.set(xlabel = "Average Driving Distance", ylabel = "World Ranking", title = "Avg. Driving Distance vs. World Ranking")
+    ax1.invert_yaxis()
+    ax1.scatter(distances, ranks)
+
+    plt.show()
+
+
+def strokesGainedTeeToGreenScat(cur, conn):
+
+    strokesDict = {}
+
+    cur.execute('''
+    SELECT rank, strokes
+    FROM Leaderboard
+    JOIN StrokesGainedTeeToGreen
+    ON StrokesGainedTeeToGreen.name = Leaderboard.name
+    ORDER BY Leaderboard.rank
+    ''')
+    
+
+    for row in cur:
+        #print(row)
+        strokesDict[row[0]] = row[-1]
+
+
+    ranks = strokesDict.keys()
+    strokes_ = strokesDict.values()
+
+    fig1 = plt.figure(1, edgecolor = "purple", facecolor = "grey")
+
+    ax1 = fig1.add_subplot(111)
+
+    ax1.set(xlabel = "Strokes Gained Tee to Green", ylabel = "World Ranking", title = "Strokes Gained Tee to Green vs. World Ranking")
+    ax1.invert_yaxis()
+    ax1.scatter(strokes_, ranks)
+
+    plt.show()
+
+
+def greensInRegScatter(cur, conn):
+    percDict = {}
+
+    cur.execute('''
+    SELECT rank, percentage
+    FROM Leaderboard
+    JOIN GreensInReg
+    ON GreensInReg.name = Leaderboard.name
+    ORDER BY Leaderboard.rank
+    ''')
+    
+
+    for row in cur:
+        #print(row)
+        percDict[row[0]] = row[-1]
+
+
+    ranks = percDict.keys()
+    perc = percDict.values()
+
+    fig1 = plt.figure(1, edgecolor = "green", facecolor = "grey")
+
+    ax1 = fig1.add_subplot(111)
+
+    ax1.set(xlabel = "Greens In Regulation Percentage", ylabel = "World Ranking", title = "Greens In Regulation Percentage vs. World Ranking")
+    ax1.invert_yaxis()
+    ax1.scatter(perc, ranks)
+
+    plt.show()
+
+
+
+
+def scramblingPctScatter(cur, conn):
+    scrambleDict = {}
+
+    cur.execute('''
+    SELECT rank, percentage
+    FROM Leaderboard
+    JOIN ScramblingPercentage
+    ON ScramblingPercentage.name = Leaderboard.name
+    ORDER BY Leaderboard.rank
+    ''')
+    
+
+    for row in cur:
+        #print(row)
+        scrambleDict[row[0]] = row[-1]
+
+
+    ranks = scrambleDict.keys()
+    perc = scrambleDict.values()
+
+    fig1 = plt.figure(1, edgecolor = "red", facecolor = "grey")
+
+    ax1 = fig1.add_subplot(111)
+
+    ax1.set(xlabel = "Scrambling Percentage", ylabel = "World Ranking", title = "Srambling Percentage vs. World Ranking")
+    ax1.invert_yaxis()
+    ax1.scatter(perc, ranks)
+
+    plt.show()
+
+
+
 
 
 
@@ -519,7 +634,10 @@ def main():
 
 
     #getGolfLeaderboard(cur, conn)
-    drivingScatterPlot(cur, conn)
+    #drivingScatterPlot(cur, conn)
+    #strokesGainedTeeToGreenScat(cur, conn)
+    #greensInRegScatter(cur, conn)
+    scramblingPctScatter(cur, conn)
 
 
 
