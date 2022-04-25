@@ -34,6 +34,7 @@ def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
+
     return cur, conn
 
 def getGolfLeaderboard(cur, conn):
@@ -87,6 +88,14 @@ def getGolfLeaderboard(cur, conn):
     CREATE TABLE Leaderboard (name TEXT, rank REAL)
     ''')
 
+    cur.execute('''
+    DROP TABLE IF EXISTS Correlations
+    ''')
+
+    cur.execute('''
+    CREATE TABLE Correlations(statistic TEXT, correlation REAL)
+    ''')
+
     for r in text["rankings"]:
         rank = int(r["owgr_rank"])
         name1 = r["player_name"]
@@ -106,11 +115,6 @@ def getGolfLeaderboard(cur, conn):
             ''', (real_name1, rank))
 
     conn.commit()
-
-
-
-
-
 
 def getAvgDrivingDistance(cur, conn):
     site = requests.get("https://www.pgatour.com/stats.html")
@@ -185,7 +189,6 @@ def getAvgDrivingDistance(cur, conn):
             print(drivingDistance)
     conn.commit()
             
-
 def getGreensInRegPct(cur, conn):
     site = requests.get("https://www.pgatour.com/stats.html")
 
@@ -261,7 +264,6 @@ def getGreensInRegPct(cur, conn):
             print(greensReg)
     conn.commit()
  
-
 def getStrokesGainedTeeToGreen(cur, conn):
     site = requests.get("https://www.pgatour.com/stats.html")
 
@@ -505,10 +507,10 @@ def drivingScatterPlot(cur, conn):
         #print(row)
         drivingDict[row[0]] = row[-1]
 
-    print(drivingDict)
 
-    ranks = drivingDict.keys()
-    distances = drivingDict.values()
+    ranks = list(drivingDict.keys())
+    distances = list(drivingDict.values())
+    array_ = [ranks, distances]
 
     fig1 = plt.figure(1, edgecolor = "b", facecolor = "grey")
 
@@ -519,6 +521,21 @@ def drivingScatterPlot(cur, conn):
     ax1.scatter(distances, ranks)
 
     plt.show()
+
+    correlation_ = np.corrcoef(array_)
+
+    correlation = abs(float(correlation_[0][-1]))
+
+    stat = "Driving Distance"
+
+    cur.execute('''
+    INSERT INTO Correlations (statistic, correlation)
+    VALUES (?, ?)
+    ''', (stat, correlation))
+
+    conn.commit()
+
+    return correlation
 
 
 def strokesGainedTeeToGreenScat(cur, conn):
@@ -539,8 +556,9 @@ def strokesGainedTeeToGreenScat(cur, conn):
         strokesDict[row[0]] = row[-1]
 
 
-    ranks = strokesDict.keys()
-    strokes_ = strokesDict.values()
+    ranks = list(strokesDict.keys())
+    strokes_ = list(strokesDict.values())
+    array_ = [ranks, strokes_]
 
     fig1 = plt.figure(1, edgecolor = "purple", facecolor = "grey")
 
@@ -552,8 +570,26 @@ def strokesGainedTeeToGreenScat(cur, conn):
 
     plt.show()
 
+    correlation_ = np.corrcoef(array_)
+
+    correlation = abs(float(correlation_[0][-1]))
+
+    stat = "Strokes Gained Tee To Green"
+
+    cur.execute('''
+    INSERT INTO Correlations (statistic, correlation)
+    VALUES (?, ?)
+    ''', (stat, correlation))
+
+    conn.commit()
+
+    return correlation
+
+
+
 
 def greensInRegScatter(cur, conn):
+
     percDict = {}
 
     cur.execute('''
@@ -570,8 +606,9 @@ def greensInRegScatter(cur, conn):
         percDict[row[0]] = row[-1]
 
 
-    ranks = percDict.keys()
-    perc = percDict.values()
+    ranks = list(percDict.keys())
+    perc = list(percDict.values())
+    array_ = [ranks, perc]
 
     fig1 = plt.figure(1, edgecolor = "green", facecolor = "grey")
 
@@ -582,7 +619,68 @@ def greensInRegScatter(cur, conn):
     ax1.scatter(perc, ranks)
 
     plt.show()
+    correlation_ = np.corrcoef(array_)
 
+    correlation = abs(float(correlation_[0][-1]))
+
+    stat = "Greens In Regulation Percentage"
+
+    cur.execute('''
+    INSERT INTO Correlations (statistic, correlation)
+    VALUES (?, ?)
+    ''', (stat, correlation))
+
+    conn.commit()
+
+    return correlation
+
+
+
+def puttingScatter(cur, conn):
+    strokesDict = {}
+
+    cur.execute('''
+    SELECT rank, strokes
+    FROM Leaderboard
+    JOIN StrokesGainedPutting
+    ON StrokesGainedPutting.name = Leaderboard.name
+    ORDER BY Leaderboard.rank
+    ''')
+    
+
+    for row in cur:
+        #print(row)
+        strokesDict[row[0]] = row[-1]
+
+
+    ranks = list(strokesDict.keys())
+    strokes = list(strokesDict.values())
+    array_ = [ranks, strokes]
+
+    fig1 = plt.figure(1, edgecolor = "yellow", facecolor = "grey")
+
+    ax1 = fig1.add_subplot(111)
+
+    ax1.set(xlabel = "Strokes Gained Putting", ylabel = "World Ranking", title = "Strokes Gained Putting vs. World Ranking")
+    ax1.invert_yaxis()
+    ax1.scatter(strokes, ranks)
+
+    plt.show()
+
+    correlation_ = np.corrcoef(array_)
+
+    correlation = abs(float(correlation_[0][-1]))
+
+    stat = "Strokes Gained Putting"
+
+    cur.execute('''
+    INSERT INTO Correlations (statistic, correlation)
+    VALUES (?, ?)
+    ''', (stat, correlation))
+
+    conn.commit()
+
+    return correlation
 
 
 
@@ -603,8 +701,9 @@ def scramblingPctScatter(cur, conn):
         scrambleDict[row[0]] = row[-1]
 
 
-    ranks = scrambleDict.keys()
-    perc = scrambleDict.values()
+    ranks = list(scrambleDict.keys())
+    perc = list(scrambleDict.values())
+    array_ =[ranks, perc]
 
     fig1 = plt.figure(1, edgecolor = "red", facecolor = "grey")
 
@@ -615,6 +714,20 @@ def scramblingPctScatter(cur, conn):
     ax1.scatter(perc, ranks)
 
     plt.show()
+    correlation_ = np.corrcoef(array_)
+
+    correlation = abs(float(correlation_[0][-1]))
+
+    stat = "Scrambling Percentage"
+
+    cur.execute('''
+    INSERT INTO Correlations (statistic, correlation)
+    VALUES (?, ?)
+    ''', (stat, correlation))
+
+    conn.commit()
+
+    return correlation
 
 
 
@@ -627,7 +740,7 @@ def main():
     cur, conn = setUpDatabase(dbname)
 
     #getGreensInRegPct(cur, conn)
-    #getGolfLeaderBoard()
+    #getGolfLeaderboard(cur, conn)
     #getStrokesGainedTeeToGreen(cur, conn)
     #getScramblingPct(cur, conn)
     #getStrokesGainedPutting(cur, conn)
@@ -637,7 +750,8 @@ def main():
     #drivingScatterPlot(cur, conn)
     #strokesGainedTeeToGreenScat(cur, conn)
     #greensInRegScatter(cur, conn)
-    scramblingPctScatter(cur, conn)
+    #scramblingPctScatter(cur, conn)
+    puttingScatter(cur, conn)
 
 
 
