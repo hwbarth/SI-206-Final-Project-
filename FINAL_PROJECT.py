@@ -22,8 +22,6 @@ import sqlite3
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-#from asyncore import write
-#from xml.sax import parseString
 from bs4 import BeautifulSoup
 import requests
 import csv
@@ -414,7 +412,6 @@ def getScramblingPct(cur, conn):
             print(greensReg)
     conn.commit()
 
-
 def getStrokesGainedPutting(cur, conn):
 
     site = requests.get("https://www.pgatour.com/stats.html")
@@ -537,7 +534,6 @@ def drivingScatterPlot(cur, conn):
 
     return correlation
 
-
 def strokesGainedTeeToGreenScat(cur, conn):
 
     strokesDict = {}
@@ -585,9 +581,6 @@ def strokesGainedTeeToGreenScat(cur, conn):
 
     return correlation
 
-
-
-
 def greensInRegScatter(cur, conn):
 
     percDict = {}
@@ -633,8 +626,6 @@ def greensInRegScatter(cur, conn):
     conn.commit()
 
     return correlation
-
-
 
 def puttingScatter(cur, conn):
     strokesDict = {}
@@ -682,8 +673,6 @@ def puttingScatter(cur, conn):
 
     return correlation
 
-
-
 def scramblingPctScatter(cur, conn):
     scrambleDict = {}
 
@@ -729,33 +718,22 @@ def scramblingPctScatter(cur, conn):
 
     return correlation
 
-
-
-
-
-
-
 def main():
     dbname = "GolfingBrothers.db"
     cur, conn = setUpDatabase(dbname)
 
-    #getGreensInRegPct(cur, conn)
-    #getGolfLeaderboard(cur, conn)
-    #getStrokesGainedTeeToGreen(cur, conn)
-    #getScramblingPct(cur, conn)
-    #getStrokesGainedPutting(cur, conn)
-
-
-    #getGolfLeaderboard(cur, conn)
-    #drivingScatterPlot(cur, conn)
-    #strokesGainedTeeToGreenScat(cur, conn)
-    #greensInRegScatter(cur, conn)
-    #scramblingPctScatter(cur, conn)
+    getGolfLeaderboard(cur, conn)
+    getAvgDrivingDistance(cur, conn)
+    getGreensInRegPct(cur, conn)
+    getStrokesGainedTeeToGreen(cur, conn)
+    getScramblingPct(cur, conn)
+    getStrokesGainedPutting(cur, conn)
+    drivingScatterPlot(cur, conn)
+    strokesGainedTeeToGreenScat(cur, conn)
+    greensInRegScatter(cur, conn)
     puttingScatter(cur, conn)
-
-
-
-
+    scramblingPctScatter(cur, conn)
+    
 
 main()
 
