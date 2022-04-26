@@ -765,7 +765,6 @@ def writeCorrelationsToFile(cur, conn):
 
     f.close()
 
-
 def main():
     dbname = "GolfingBrothers.db"
     cur, conn = setUpDatabase(dbname)
