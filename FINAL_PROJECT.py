@@ -183,8 +183,6 @@ def getAvgDrivingDistance(cur, conn):
             INSERT INTO Driving (name, distance)
             VALUES (?, ?)
             ''', (name1, drivingDistance))
-            print(name1)
-            print(drivingDistance)
     conn.commit()
             
 def getGreensInRegPct(cur, conn):
@@ -241,7 +239,6 @@ def getGreensInRegPct(cur, conn):
             name = player_name.find("a")
             #print(name.string)
             name1 = str(name.string)
-            print(name1)
 
         greens_reg = row.find_all("td")
 
@@ -251,15 +248,12 @@ def getGreensInRegPct(cur, conn):
                 greensReg = float(greens_reg[4].string)
         
 
-        
         if greensReg != 0 and name1 != "":
             
             cur.execute('''
             INSERT INTO GreensInReg (name, percentage)
             VALUES (?, ?)
             ''', (name1, greensReg))
-            print(name1)
-            print(greensReg)
     conn.commit()
  
 def getStrokesGainedTeeToGreen(cur, conn):
@@ -315,7 +309,6 @@ def getStrokesGainedTeeToGreen(cur, conn):
             name = player_name.find("a")
             #print(name.string)
             name1 = str(name.string)
-            print(name1)
 
         greens_reg = row.find_all("td")
 
@@ -327,15 +320,10 @@ def getStrokesGainedTeeToGreen(cur, conn):
 
         
         if greensReg != 0 and name1 != "":
-
-            
-            
             cur.execute('''
             INSERT INTO StrokesGainedTeeToGreen (name, strokes)
             VALUES (?, ?)
             ''', (name1, greensReg))
-            print(name1)
-            print(greensReg)
     conn.commit()
 
 def getScramblingPct(cur, conn):
@@ -391,7 +379,6 @@ def getScramblingPct(cur, conn):
             name = player_name.find("a")
             #print(name.string)
             name1 = str(name.string)
-            print(name1)
 
         greens_reg = row.find_all("td")
 
@@ -408,8 +395,6 @@ def getScramblingPct(cur, conn):
             INSERT INTO ScramblingPercentage (name, percentage)
             VALUES (?, ?)
             ''', (name1, greensReg))
-            print(name1)
-            print(greensReg)
     conn.commit()
 
 def getStrokesGainedPutting(cur, conn):
@@ -466,7 +451,6 @@ def getStrokesGainedPutting(cur, conn):
             name = player_name.find("a")
             #print(name.string)
             name1 = str(name.string)
-            print(name1)
 
         greens_reg = row.find_all("td")
 
@@ -483,8 +467,6 @@ def getStrokesGainedPutting(cur, conn):
             INSERT INTO StrokesGainedPutting (name, strokes)
             VALUES (?, ?)
             ''', (name1, greensReg))
-            print(name1)
-            print(greensReg)
     conn.commit()
 
 def drivingScatterPlot(cur, conn):
@@ -501,7 +483,6 @@ def drivingScatterPlot(cur, conn):
     
 
     for row in cur:
-        #print(row)
         drivingDict[row[0]] = row[-1]
 
 
@@ -515,7 +496,7 @@ def drivingScatterPlot(cur, conn):
 
     ax1.set(xlabel = "Average Driving Distance", ylabel = "World Ranking", title = "Avg. Driving Distance vs. World Ranking")
     ax1.invert_yaxis()
-    ax1.scatter(distances, ranks)
+    ax1.scatter(distances, ranks, c = "orange")
 
     plt.show()
 
@@ -562,7 +543,7 @@ def strokesGainedTeeToGreenScat(cur, conn):
 
     ax1.set(xlabel = "Strokes Gained Tee to Green", ylabel = "World Ranking", title = "Strokes Gained Tee to Green vs. World Ranking")
     ax1.invert_yaxis()
-    ax1.scatter(strokes_, ranks)
+    ax1.scatter(strokes_, ranks, c = "blue")
 
     plt.show()
 
@@ -609,7 +590,7 @@ def greensInRegScatter(cur, conn):
 
     ax1.set(xlabel = "Greens In Regulation Percentage", ylabel = "World Ranking", title = "Greens In Regulation Percentage vs. World Ranking")
     ax1.invert_yaxis()
-    ax1.scatter(perc, ranks)
+    ax1.scatter(perc, ranks, c = "green")
 
     plt.show()
     correlation_ = np.corrcoef(array_)
@@ -654,7 +635,7 @@ def puttingScatter(cur, conn):
 
     ax1.set(xlabel = "Strokes Gained Putting", ylabel = "World Ranking", title = "Strokes Gained Putting vs. World Ranking")
     ax1.invert_yaxis()
-    ax1.scatter(strokes, ranks)
+    ax1.scatter(strokes, ranks, c = "purple")
 
     plt.show()
 
@@ -674,6 +655,8 @@ def puttingScatter(cur, conn):
     return correlation
 
 def scramblingPctScatter(cur, conn):
+
+    
     scrambleDict = {}
 
     cur.execute('''
@@ -700,7 +683,7 @@ def scramblingPctScatter(cur, conn):
 
     ax1.set(xlabel = "Scrambling Percentage", ylabel = "World Ranking", title = "Srambling Percentage vs. World Ranking")
     ax1.invert_yaxis()
-    ax1.scatter(perc, ranks)
+    ax1.scatter(perc, ranks, c = "red")
 
     plt.show()
     correlation_ = np.corrcoef(array_)
@@ -718,10 +701,74 @@ def scramblingPctScatter(cur, conn):
 
     return correlation
 
+def correlationBargraph(cur, conn):
+
+    cur.execute('''
+    SELECT statistic, correlation
+    FROM Correlations
+    ORDER BY correlation
+    ''')
+
+
+    stats = []
+    correlations = []
+    for row in cur:
+        stats.append(row[0])
+        correlations.append(row[1])
+
+    fig2 = plt.figure(1, edgecolor = "green", facecolor = "grey")
+
+    ax2 = fig2.add_subplot(111)
+    
+    ax2.set(xlabel = "Statistic", ylabel = "Correlation With World Rankings", title = "Correlation Between Golf Stats and World Ranking")
+
+    ax2.tick_params(axis = "x", labelsize = 4.5)
+
+    ax2.bar(stats, correlations, color = ["purple", "orange", "green", "red", "blue"])
+
+    plt.show()
+    
+def writeCorrelationsToFile(cur, conn):
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+    full_path = path + "PGA_Tour_Ranking_Stat_Correlation"
+  
+    try:
+        f = open(full_path, "w")
+    except:
+        print("Can't be openend")
+        exit()
+
+
+    cur.execute('''
+    SELECT statistic, correlation
+    FROM Correlations
+    ORDER BY correlation
+    ''')
+
+    stats = []
+    correlations = []
+
+    for row in cur:
+        stat = row[0]
+        stats.append(stat)
+        correlation = row[1]
+        correlations.append(correlation)
+
+
+        line = "Statistic: " + str(stat) + " - Correlation With World Rankings: " + str(correlation) + "\n"
+        line2 = " "
+
+        f.write(line)
+        f.write(line2)
+
+
+    f.close()
+
+
 def main():
     dbname = "GolfingBrothers.db"
     cur, conn = setUpDatabase(dbname)
-
     getGolfLeaderboard(cur, conn)
     getAvgDrivingDistance(cur, conn)
     getGreensInRegPct(cur, conn)
@@ -733,7 +780,9 @@ def main():
     greensInRegScatter(cur, conn)
     puttingScatter(cur, conn)
     scramblingPctScatter(cur, conn)
-    
+    correlationBargraph(cur, conn)
+    writeCorrelationsToFile(cur, conn)
+
 
 main()
 
